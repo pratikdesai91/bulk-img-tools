@@ -44,6 +44,15 @@ export default function Tools() {
               Sort and move bulk images into folders instantly for better project organization.
             </p>
             </Link>
+          </div>{/* Feature 5 */}
+          <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition">
+            
+          <Link href="/tools/bulk-image-converter">
+            <h3 className="text-xl font-semibold mb-2">🔄 Bulk Image Converter</h3>
+            <p className="text-gray-600">
+              Convert multiple images to WebP, JPG, PNG, GIF, or AVIF — fast, easy, and downloadable as a ZIP
+            </p>
+            </Link>
           </div>
         </div>
       </section>

@@ -12,14 +12,14 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 text-gray-900">
+      <body className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
         {/* 🔵 Navigation Bar */}
         <header className="bg-blue-300 shadow">
           <div className="container mx-auto flex items-center justify-between p-0.5">
             {/* ✅ Logo on Left */}
             <Link href="/" className="flex items-center space-x-1">
               <Image
-                src="https://i.ibb.co/20SXtctw/bulk-img-tools.png"
+                src="https://i.ibb.co/JWhjGb0G/bulk-img-tools.png"
                 alt="bulk image tools logo"
                 width={40}
                 height={40}
@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main className="container mx-auto p-6">{children}</main>
+        <main className="flex-1 container mx-auto p-6">{children}</main>
 
         {/* Footer */}
         <footer className="bg-blue-300 shadow text-left text-sm">

@@ -22,7 +22,8 @@ export async function POST(req: Request) {
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
-  } catch (err) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  }
+} catch (err) {
+  console.error("Download error:", err);
+  return NextResponse.json({ error: "Server error" }, { status: 500 });
+}
 }

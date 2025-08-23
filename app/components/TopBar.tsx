@@ -45,7 +45,7 @@ export default function TopBar() {
         {/* Left side links */}
         <div className="flex space-x-6">
           <Link href="/" className="text-lg font-medium hover:text-blue-900">Home</Link>
-          <Link href="/converter" className="text-lg font-medium hover:text-blue-900">Converter</Link>
+          <Link href="/tools/bulk-image-converter" className="text-lg font-medium hover:text-blue-900">Converter</Link>
           <Link href="/tools" className="text-lg font-medium hover:text-blue-900">Tools</Link>
           <Link href="/aboutus" className="text-lg font-medium hover:text-blue-900">About us</Link>
           <Link href="/contact" className="text-lg font-medium hover:text-blue-900">Contact Us</Link>

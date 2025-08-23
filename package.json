@@ -9,15 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.2.3",
     "archiver": "^7.0.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "fast-csv": "^5.0.5",
     "file-saver": "^2.0.5",
     "formidable": "^3.5.4",
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.541.0",
     "next": "15.4.7",
     "nodemailer": "^6.10.1",
     "papaparse": "^5.5.3",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -33,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.4.7",
     "tailwindcss": "^4",
+    "tw-animate-css": "^1.3.7",
     "typescript": "^5"
   }
 }

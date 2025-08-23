@@ -4,7 +4,7 @@ export default function Home() {
     <div>
       {/* Hero Section */}
       <section className="text-center py-7 bg-gradient-to-r from-blue-200 to-blue-300 rounded-xl shadow-md">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Power Tools Store</h1>
+        <h1 className="text-4xl font-bold mb-4">Welcome to Bulk Img Tools</h1>
         <p className="text-lg text-gray-700">
           Smart tools to make your image workflow faster, easier, and more powerful.
         </p>
@@ -50,6 +50,15 @@ export default function Home() {
             <h3 className="text-xl font-semibold mb-2">📂 Move Images to Folders</h3>
             <p className="text-gray-600">
               Sort and move bulk images into folders instantly for better project organization.
+            </p>
+            </Link>
+          </div>
+          <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition">
+         {/* Feature 5 */}   
+          <Link href="/tools/bulk-image-converter">
+            <h3 className="text-xl font-semibold mb-2">🔄 Bulk Image Converter</h3>
+            <p className="text-gray-600">
+              Convert multiple images to WebP, JPG, PNG, GIF, or AVIF — fast, easy, and downloadable as a ZIP
             </p>
             </Link>
           </div>
