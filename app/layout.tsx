@@ -1,7 +1,6 @@
 import "./globals.css";
 import { ReactNode } from "react";
 import TopBar from "./components/TopBar";
-import Image from "next/image";
 import Link from "next/link";
 
 export const metadata = {
@@ -18,12 +17,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <div className="container mx-auto flex items-center justify-between p-0.5">
             {/* ✅ Logo on Left */}
             <Link href="/" className="flex items-center space-x-1">
-              <Image
-                src="https://i.ibb.co/JWhjGb0G/bulk-img-tools.png"
-                alt="bulk image tools logo"
-                width={40}
-                height={40}
-              /><span className="text-black font-bold">Bulk Img Tool</span>
             </Link>
             <TopBar />
             

@@ -21,7 +21,7 @@ export default function LoginPage() {
     // ✅ Replace this with your real validation
     const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
     const user = users.find(
-      (u: any) => u.email === email && u.password === password
+      (u: User) => u.email === email && u.password === password
     );
 
     if (user) {
