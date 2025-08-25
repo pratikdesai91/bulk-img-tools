@@ -1,36 +1,34 @@
-import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { otpStore } from "app/lib/otpStore";
 
 export async function POST(req: Request) {
-  const { email } = await req.json();
+  try {
+    const { email } = await req.json();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  if (!email) {
-    return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: false, // true for port 465, false for 587
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"MyApp" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: "Your OTP Code",
+      text: `Your OTP code is ${otp}`,
+    });
+
+    return new Response(JSON.stringify({ success: true, otp }), {
+      status: 200,
+    });
+  } catch (err) {
+    console.error("Error sending OTP:", err);
+    return new Response(JSON.stringify({ success: false, error: "Failed to send OTP" }), {
+      status: 500,
+    });
   }
-
-  // Generate 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-  // Save OTP with 5 min expiry
-  otpStore.set(email, { otp, expiresAt: Date.now() + 5 * 60 * 1000 });
-
-  // Setup transporter
-  const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-      user: process.env.EMAIL_USER!,
-      pass: process.env.EMAIL_PASS!,
-    },
-  });
-
-  // Send email
-  await transporter.sendMail({
-    from: `"Power Tools Store" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Verify your email - OTP Code",
-    text: `Your OTP code is ${otp}. It expires in 5 minutes.`,
-  });
-
-  return NextResponse.json({ success: true, message: "OTP sent to email" });
 }
