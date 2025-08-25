@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ReactNode } from "react";
 import TopBar from "./components/TopBar";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata = {
@@ -17,9 +18,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <div className="container mx-auto flex items-center justify-between p-0.5">
             {/* ✅ Logo on Left */}
             <Link href="/" className="flex items-center space-x-1">
+              <Image
+                src="https://i.postimg.cc/0bZtyC3W/JDSymbol.png"
+                alt="Bulk image tools logo"
+                width={40}
+                height={40}
+                priority // 🚀 ensures fast load
+              />
+              <span className="text-black font-bold">Bulk Img Tool</span>
             </Link>
             <TopBar />
-            
           </div>
         </header>
 
@@ -28,11 +36,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
         {/* Footer */}
         <footer className="bg-blue-300 shadow text-left text-sm">
-                    <nav className="container mx-auto flex justify-between items-center p-4"></nav>
+          <nav className="container mx-auto flex justify-between items-center p-4" />
           © {new Date().getFullYear()} Bulk img tools. All rights reserved.
         </footer>
       </body>
     </html>
-    
   );
 }
