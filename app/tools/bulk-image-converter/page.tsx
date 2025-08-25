@@ -56,35 +56,57 @@ export default function BulkImageConverter() {
   };
 
   // Convert File/URL → chosen format
-  const convertImage = (src: string, fileName: string): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
+  const convertImage = async (src: string, fileName: string): Promise<Blob> => {
+  // If it’s a proxy URL, fetch it as blob first
+  if (src.startsWith("/api/proxy")) {
+    const res = await fetch(src);
+    if (!res.ok) throw new Error(`Failed to fetch ${fileName}`);
+    const blob = await res.blob();
+    return await new Promise<Blob>((resolve, reject) => {
       const img = new window.Image();
       img.crossOrigin = "anonymous";
-      img.src = src;
+      img.src = URL.createObjectURL(blob);
 
       img.onload = () => {
         const canvas = document.createElement("canvas");
         canvas.width = img.width;
         canvas.height = img.height;
-
         const ctx = canvas.getContext("2d");
         if (!ctx) return reject(new Error("Canvas error"));
-
         ctx.drawImage(img, 0, 0);
-
         canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error("Conversion failed for " + fileName));
-          },
+          (b) => (b ? resolve(b) : reject(new Error("Conversion failed"))),
           `image/${format}`,
           0.9
         );
       };
-
       img.onerror = () => reject(new Error("Failed to load " + fileName));
     });
-  };
+  }
+
+  // Normal local file (already a blob url)
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    img.src = src;
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Canvas error"));
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error("Conversion failed"))),
+        `image/${format}`,
+        0.9
+      );
+    };
+
+    img.onerror = () => reject(new Error("Failed to load " + fileName));
+  });
+};
 
   const convertAll = async () => {
     const inputFiles = images ? Array.from(images) : [];
@@ -121,7 +143,10 @@ export default function BulkImageConverter() {
 
       let urlIndex = 1;
       for (const link of urlList) {
-        const blob = await convertImage(link, `url_image_${urlIndex}`);
+        
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(link)}`;
+        const blob = await convertImage(proxyUrl, `url_image_${urlIndex}`);
+
         zip.file(`url_image_${urlIndex}.${format}`, blob);
         urlIndex++;
 

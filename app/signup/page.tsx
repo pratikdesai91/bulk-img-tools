@@ -4,6 +4,7 @@ import { useState } from "react";
 export default function SignupPage() {
   const [step, setStep] = useState<"signup" | "verify">("signup");
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
@@ -22,7 +23,7 @@ export default function SignupPage() {
       // store user data temporarily
       localStorage.setItem(
         "tempUser",
-        JSON.stringify({ fullName, email, password })
+        JSON.stringify({ firstName, fullName, email, password })
       );
       setStep("verify"); // move to OTP step
     } else {
@@ -62,6 +63,14 @@ export default function SignupPage() {
     <div className="max-w-md mx-auto mt-10">
       {step === "signup" && (
         <form onSubmit={handleSignup} className="space-y-4">
+          <input
+            type="text"
+            placeholder="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
           <input
             type="text"
             placeholder="Full Name"

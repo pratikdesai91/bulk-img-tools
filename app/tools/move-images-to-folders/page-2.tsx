@@ -20,7 +20,6 @@ declare global {
 type CsvRow = {
   original_name: string;
   new_name: string;
-  folder_name?: string;
 };
 
 export default function BulkImageMover() {
@@ -74,11 +73,12 @@ export default function BulkImageMover() {
   };
 
   const downloadTemplate = () => {
-    const template = "original_name,new_name,folder_name\n";
-    const blob = new Blob([template], { type: "text/csv" });
+    const template = "original_name,new_name\n"; // ✅ removed folder_name
+    const example = "photo1.jpg,holiday1.jpg\n";
+    const blob = new Blob([template + example], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "move-images-to-folders.csv";
+    a.download = "bulk-image-renaming.csv";
     a.click();
   };
 
@@ -119,12 +119,8 @@ export default function BulkImageMover() {
             return;
           }
           try {
-            let targetDir = outDirHandle;
-            if (row.folder_name && row.folder_name.trim() !== "") {
-              targetDir = await outDirHandle.getDirectoryHandle(row.folder_name, { create: true });
-            }
-
-            const newFileHandle = await targetDir.getFileHandle(row.new_name, { create: true });
+            // ✅ always save to root output folder
+            const newFileHandle = await outDirHandle.getFileHandle(row.new_name, { create: true });
             const writable = await newFileHandle.createWritable();
             await writable.write(await file.arrayBuffer());
             await writable.close();
@@ -147,17 +143,19 @@ export default function BulkImageMover() {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Bulk Image rename + Mover</h1>
-      <p className="mb-4 text-gray-700">Sort and move bulk images into multiple folders instantly for better project organization.</p>
-      {/* ✅ Instructions Section */}
+      <h1 className="text-2xl font-bold mb-6">Bulk Image Mover</h1>
+
+      {/* Instructions */}
       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
         <h2 className="text-lg font-semibold text-blue-700 mb-2">How to Use:</h2>
         <ol className="list-decimal list-inside space-y-1 text-gray-700">
-        <li>Click on <b>Download csv Template</b> and download templated.</li>
-          <li>Open &quot;move-images-to-folders.csv&quot; and fill in <b>coloum: A original_name and coloum: B new_name</b> (include file extensions-.jpg, .png etc ).</li>
-          <li>Browse the images you want to rename.</li>
-          <li>Select the folder for save images.</li>
-          <li>Click Proceed to Start renaming.</li>
+          <li>Download the CSV template.</li>
+          <li>
+            Fill in <strong>original_name</strong> and <strong>new_name</strong> (include file extensions).
+          </li>
+          <li>Upload the completed CSV file.</li>
+          <li>Upload the images you want to rename.</li>
+          <li>Click <strong>Proceed</strong> to generate and download a ZIP file.</li>
         </ol>
       </div>
 
@@ -177,7 +175,7 @@ export default function BulkImageMover() {
 
       <div className="mb-4">
         <button onClick={handleChooseFiles} className="bg-gray-800 text-white px-4 py-2 rounded">
-          Browse Images
+          Select Images
         </button>
         <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={onFilesSelected} className="hidden" />
         <span className="ml-3 text-gray-700">
@@ -221,7 +219,7 @@ export default function BulkImageMover() {
 
       {/* Warning */}
       <div className="mt-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded">
-        ⚠️ <strong>Warning:</strong> Please leave your PC idle while processing large image batches to avoid browser or system freeze.
+        ⚠️ <strong>Warning:</strong> Please leave your PC idle while processing large batches to avoid freeze.
       </div>
     </div>
   );
