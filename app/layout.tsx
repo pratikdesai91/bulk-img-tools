@@ -5,8 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Bulk Image Tools",
-  description: "Buy the best power tools online",
+  description: "Convert, resize, rename, and download images in bulk",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
