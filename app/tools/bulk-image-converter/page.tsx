@@ -7,7 +7,7 @@ import Image from "next/image";
 
 export default function BulkImageConverter() {
   const [images, setImages] = useState<FileList | null>(null);
-  const [urls, setUrls] = useState<string>(""); // multiple URLs
+  const [urls, setUrls] = useState<string>("");
   const [previews, setPreviews] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number }>({
@@ -16,6 +16,7 @@ export default function BulkImageConverter() {
   });
   const [error, setError] = useState<string | null>(null);
   const [zipBlob, setZipBlob] = useState<Blob | null>(null);
+  const [brokenLinks, setBrokenLinks] = useState<string[]>([]);
   const [format, setFormat] = useState<
     "webp" | "jpeg" | "png" | "gif" | "avif"
   >("webp");
@@ -57,15 +58,37 @@ export default function BulkImageConverter() {
 
   // Convert File/URL → chosen format
   const convertImage = async (src: string, fileName: string): Promise<Blob> => {
-  // If it’s a proxy URL, fetch it as blob first
-  if (src.startsWith("/api/proxy")) {
-    const res = await fetch(src);
-    if (!res.ok) throw new Error(`Failed to fetch ${fileName}`);
-    const blob = await res.blob();
-    return await new Promise<Blob>((resolve, reject) => {
+    if (src.startsWith("/api/proxy")) {
+      const res = await fetch(src);
+      if (!res.ok) throw new Error(`Failed to fetch ${fileName}`);
+      const blob = await res.blob();
+      return await new Promise<Blob>((resolve, reject) => {
+        const img = new window.Image();
+        img.crossOrigin = "anonymous";
+        img.src = URL.createObjectURL(blob);
+
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return reject(new Error("Canvas error"));
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob(
+            (b) => (b ? resolve(b) : reject(new Error("Conversion failed"))),
+            `image/${format}`,
+            0.9
+          );
+        };
+        img.onerror = () => reject(new Error("Failed to load " + fileName));
+      });
+    }
+
+    // Normal local file (already a blob url)
+    return new Promise((resolve, reject) => {
       const img = new window.Image();
       img.crossOrigin = "anonymous";
-      img.src = URL.createObjectURL(blob);
+      img.src = src;
 
       img.onload = () => {
         const canvas = document.createElement("canvas");
@@ -80,33 +103,10 @@ export default function BulkImageConverter() {
           0.9
         );
       };
+
       img.onerror = () => reject(new Error("Failed to load " + fileName));
     });
-  }
-
-  // Normal local file (already a blob url)
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.crossOrigin = "anonymous";
-    img.src = src;
-
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return reject(new Error("Canvas error"));
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob(
-        (b) => (b ? resolve(b) : reject(new Error("Conversion failed"))),
-        `image/${format}`,
-        0.9
-      );
-    };
-
-    img.onerror = () => reject(new Error("Failed to load " + fileName));
-  });
-};
+  };
 
   const convertAll = async () => {
     const inputFiles = images ? Array.from(images) : [];
@@ -124,31 +124,47 @@ export default function BulkImageConverter() {
     setIsProcessing(true);
     setProgress({ done: 0, total });
     setError(null);
+    setBrokenLinks([]); // reset failures
 
     try {
       const zip = new JSZip();
 
+      // Local files
       for (const file of inputFiles) {
         if (!allowedTypes.includes(file.type)) {
-          throw new Error(`❌ ${file.name} is not a supported format.`);
+          console.warn(`Skipping unsupported file: ${file.name}`);
+          setBrokenLinks((prev) => [...prev, file.name]);
+          setProgress((prev) => ({ done: prev.done + 1, total }));
+          continue;
         }
 
-        const url = URL.createObjectURL(file);
-        const blob = await convertImage(url, file.name);
-        const fileName = file.name.replace(/\.[^/.]+$/, `.${format}`);
-        zip.file(fileName, blob);
+        try {
+          const url = URL.createObjectURL(file);
+          const blob = await convertImage(url, file.name);
+          const fileName = file.name.replace(/\.[^/.]+$/, `.${format}`);
+          zip.file(fileName, blob);
+        } catch (err) {
+          console.warn(`Skipping local file ${file.name}:`, err);
+          setBrokenLinks((prev) => [...prev, file.name]);
+        }
 
         setProgress((prev) => ({ done: prev.done + 1, total }));
       }
 
-      let urlIndex = 1;
+      // Remote URLs
       for (const link of urlList) {
-        
-        const proxyUrl = `/api/proxy?url=${encodeURIComponent(link)}`;
-        const blob = await convertImage(proxyUrl, `url_image_${urlIndex}`);
+        try {
+          const proxyUrl = `/api/proxy?url=${encodeURIComponent(link)}`;
+          const blob = await convertImage(proxyUrl, link);
 
-        zip.file(`url_image_${urlIndex}.${format}`, blob);
-        urlIndex++;
+          let fileName = link.split("/").pop() || `image.${format}`;
+          fileName = fileName.replace(/\.[^/.]+$/, `.${format}`);
+
+          zip.file(fileName, blob);
+        } catch (err) {
+          console.warn(`Skipping URL ${link}:`, err);
+          setBrokenLinks((prev) => [...prev, link]);
+        }
 
         setProgress((prev) => ({ done: prev.done + 1, total }));
       }
@@ -170,6 +186,19 @@ export default function BulkImageConverter() {
     if (zipBlob) {
       saveAs(zipBlob, `converted_images_${format}.zip`);
     }
+  };
+
+  const downloadBrokenAsTxt = () => {
+    if (brokenLinks.length === 0) return;
+    const blob = new Blob([brokenLinks.join("\n")], { type: "text/plain" });
+    saveAs(blob, "broken_links.txt");
+  };
+
+  const downloadBrokenAsCsv = () => {
+    if (brokenLinks.length === 0) return;
+    const csvContent = brokenLinks.map((link) => `"${link}"`).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    saveAs(blob, "broken_links.csv");
   };
 
   return (
@@ -272,14 +301,36 @@ export default function BulkImageConverter() {
       {/* Error */}
       {error && <p className="text-red-600 mt-3">{error}</p>}
 
-      {/* Download Button */}
+      {/* Download Section */}
       {zipBlob && !error && !isProcessing && (
-        <button
-          onClick={downloadZip}
-          className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
-        >
-          ⬇️ Download {format.toUpperCase()} ZIP
-        </button>
+        <div className="mt-4 space-y-3">
+          <button
+            onClick={downloadZip}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            ⬇️ Download {format.toUpperCase()} ZIP
+          </button>
+
+          {brokenLinks.length > 0 && (
+            <div className="mt-4">
+              <p className="text-red-600 mb-2">
+                ⚠️ {brokenLinks.length} file(s) could not be processed.
+              </p>
+              <button
+                onClick={downloadBrokenAsTxt}
+                className="bg-gray-600 text-white px-3 py-1 rounded mr-2"
+              >
+                ⬇️ Download TXT
+              </button>
+              <button
+                onClick={downloadBrokenAsCsv}
+                className="bg-gray-600 text-white px-3 py-1 rounded"
+              >
+                ⬇️ Download CSV
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
