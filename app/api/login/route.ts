@@ -26,4 +26,10 @@ export async function POST(req: Request) {
     success: true,
     user: { email: user.email, firstName: user.first_name, lastName: user.last_name },
   });
+  // app/api/login/route.ts
+return NextResponse.json({
+  success: true,
+  user: { email: user.email, firstName: user.first_name, lastName: user.last_name },
+});
+
 }

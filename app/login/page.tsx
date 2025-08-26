@@ -1,26 +1,39 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok) {
-      alert(`Welcome, ${data.user.firstName}!`);
-      // redirect or save session token here
-    } else {
-      alert(data.error);
+      if (res.ok) {
+        // ✅ Save user in localStorage to persist login
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
+        alert(`Welcome, ${data.user.firstName}!`);
+        router.push("/"); // redirect to home
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,7 +56,13 @@ export default function LoginPage() {
           className="w-full p-2 border rounded"
           required
         />
-        <button className="w-full bg-blue-500 text-white p-2 rounded">Login</button>
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white p-2 rounded"
+          disabled={loading}
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
       </form>
     </div>
   );
