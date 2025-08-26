@@ -21,13 +21,14 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (res.ok) {
-        // ✅ Save user in localStorage to persist login
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
+      if (res.ok && data.success) {
+        // ✅ Save user in localStorage with the SAME key TopBar expects
+        localStorage.setItem("loggedInUser", JSON.stringify(data.user));
+
         alert(`Welcome, ${data.user.firstName}!`);
-        router.push("/"); // redirect to home
+        router.push("/"); // redirect to home (or /dashboard if you prefer)
       } else {
-        alert(data.error);
+        alert(data.error || "Login failed");
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -38,7 +39,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10">
+    <div className="max-w-md mx-auto mt-10 bg-white shadow-md p-6 rounded-lg">
+      <h1 className="text-2xl font-bold mb-4 text-center">Sign In</h1>
       <form onSubmit={handleLogin} className="space-y-4">
         <input
           type="email"
@@ -58,7 +60,7 @@ export default function LoginPage() {
         />
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded"
+          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
           disabled={loading}
         >
           {loading ? "Logging in..." : "Login"}
