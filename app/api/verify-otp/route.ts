@@ -16,14 +16,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
   }
 
-  // ✅ OTP valid → delete from store
   otpStore.delete(email);
 
   try {
-    // 🔐 hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ save user in Vercel Postgres
     const user = await createUser({
       email,
       firstName,
@@ -32,7 +29,11 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, user });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    // Narrow unknown to Error
+    if (err instanceof Error) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Unknown error occurred" }, { status: 500 });
   }
 }
