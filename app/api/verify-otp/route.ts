@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { otpStore } from "@/app/lib/otpStore";
 import { createUser } from "@/app/lib/db";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
   const { email, otp, firstName, lastName, password } = await req.json();
@@ -18,10 +19,22 @@ export async function POST(req: Request) {
   otpStore.delete(email);
 
   try {
+    // 🔒 hash password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // ✅ save user to Vercel Postgres
-    const user = await createUser({ email, firstName, lastName, password });
+    const user = await createUser({
+      email,
+      firstName,
+      lastName,
+      password: hashedPassword,
+    });
+
     return NextResponse.json({ success: true, user });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Unknown error occurred" }, { status: 500 });
   }
 }
