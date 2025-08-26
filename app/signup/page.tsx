@@ -5,14 +5,12 @@ export default function SignupPage() {
   const [step, setStep] = useState<"signup" | "verify">("signup");
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
-  const [fullName, setFullName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // call API to send OTP
     const res = await fetch("/api/send-otp", {
       method: "POST",
       body: JSON.stringify({ email }),
@@ -20,12 +18,11 @@ export default function SignupPage() {
     });
 
     if (res.ok) {
-      // store user data temporarily
       localStorage.setItem(
         "tempUser",
-        JSON.stringify({ firstName, fullName, email, password })
+        JSON.stringify({ firstName, lastName, email, password })
       );
-      setStep("verify"); // move to OTP step
+      setStep("verify");
     } else {
       alert("Failed to send OTP");
     }
@@ -33,7 +30,6 @@ export default function SignupPage() {
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const res = await fetch("/api/verify-otp", {
       method: "POST",
       body: JSON.stringify({ email, otp }),
@@ -45,17 +41,17 @@ export default function SignupPage() {
       if (stored) {
         const user = JSON.parse(stored);
 
-        // save permanently
+        // Save user to localStorage (replace with DB in real app)
         const users = JSON.parse(localStorage.getItem("users") || "[]");
         users.push(user);
         localStorage.setItem("users", JSON.stringify(users));
         localStorage.removeItem("tempUser");
 
         alert("Signup successful!");
-        window.location.href = "/login"; // redirect
+        window.location.href = "/login";
       }
     } else {
-      alert("Invalid OTP. Try again.");
+      alert("Invalid or expired OTP");
     }
   };
 
@@ -73,9 +69,9 @@ export default function SignupPage() {
           />
           <input
             type="text"
-            placeholder="Full Name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
             className="w-full p-2 border rounded"
             required
           />
