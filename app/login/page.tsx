@@ -10,36 +10,38 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok && data.success) {
-      localStorage.setItem("loggedInUser", JSON.stringify(data.user));
-      alert(`Welcome, ${data.user.firstName}!`);
+      if (res.ok && data.success) {
+        // ✅ Save user
+        localStorage.setItem("loggedInUser", JSON.stringify(data.user));
 
-      // Force refresh and go to home
-      router.refresh();
-      router.push("/");
-    } else {
-      alert(data.error || "Login failed");
+        // ✅ Trigger storage event so TopBar updates instantly
+        window.dispatchEvent(new Event("storage"));
+
+        alert(`Welcome, ${data.user.firstName}!`);
+        router.push("/"); // redirect to homepage
+      } else {
+        alert(data.error || "Login failed");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Login error:", err);
-    alert("Something went wrong. Try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="max-w-md mx-auto mt-10 bg-white shadow-md p-6 rounded-lg">
