@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -14,13 +14,18 @@ export default function TopBar() {
   const [mounted, setMounted] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
 
     const loadUser = () => {
-      const loggedInUser = localStorage.getItem("loggedInUser");
-      setUser(loggedInUser ? (JSON.parse(loggedInUser) as User) : null);
+      try {
+        const loggedInUser = localStorage.getItem("loggedInUser");
+        setUser(loggedInUser ? (JSON.parse(loggedInUser) as User) : null);
+      } catch {
+        setUser(null);
+      }
     };
 
     loadUser();
@@ -28,6 +33,19 @@ export default function TopBar() {
 
     return () => {
       window.removeEventListener("storage", loadUser);
+    };
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -69,13 +87,13 @@ export default function TopBar() {
               </Link>
             </>
           ) : (
-            <div className="relative">
-              {/* Small avatar button */}
+            <div className="relative" ref={dropdownRef}>
+              {/* Avatar button with initials */}
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="w-10 h-10 flex items-center justify-center bg-blue-700 text-white font-bold rounded-md hover:bg-blue-800"
               >
-                {`${user?.firstName?.charAt(0) ?? ""}${user?.lastName?.charAt(0) ?? ""}` || "U"}
+                {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"}
               </button>
 
               {/* Dropdown */}
