@@ -89,12 +89,6 @@ export default function TopBar() {
   ) : (
     <div className="flex items-center space-x-4" ref={dropdownRef}>
       {/* 👇 This keeps space between Contact Us and Avatar */}
-      <Link
-        href="/contact"
-        className="text-lg font-medium hover:text-blue-900"
-      >
-        Contact Us
-      </Link>
 
       {/* Avatar button with initials */}
       <button
