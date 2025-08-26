@@ -17,7 +17,6 @@ export async function POST(req: Request) {
 
     otpStore.delete(email);
 
-    // TODO: save user into DB here
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Verify OTP error:", err);
