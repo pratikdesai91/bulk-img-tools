@@ -6,6 +6,7 @@ import Link from "next/link";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -23,11 +24,9 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // ✅ Save user in localStorage with the SAME key TopBar expects
         localStorage.setItem("loggedInUser", JSON.stringify(data.user));
-
         alert(`Welcome, ${data.user.firstName}!`);
-        router.push("/"); // redirect to home (or /dashboard if you prefer)
+        router.push("/");
       } else {
         alert(data.error || "Login failed");
       }
@@ -51,16 +50,27 @@ export default function LoginPage() {
           className="w-full p-2 border rounded"
           required
         />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded"
-          required
-        />
-        
-        {/* ✅ Forgot Password Button */}
+
+        {/* Password input with toggle */}
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
+          >
+            {showPassword ? "🙈" : "👁️"}
+          </button>
+        </div>
+
+        {/* Forgot Password */}
         <div className="text-right">
           <Link
             href="/forgot-password"
