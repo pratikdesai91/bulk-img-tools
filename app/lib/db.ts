@@ -33,13 +33,13 @@ export async function findUserByEmail(email: string) {
   return rows[0] || null;
 }
 
-// ✅ Update a user's password (for forgot password / reset)
+// ✅ Update a user's password (Forgot Password / Reset) — removed updated_at
 export async function updateUserPassword(email: string, hashedPassword: string) {
   const query = `
     UPDATE users
     SET password = $1
     WHERE email = $2
-    RETURNING id, email, first_name, last_name, updated_at;
+    RETURNING id, email, first_name, last_name;
   `;
   const { rows } = await pool.query(query, [hashedPassword, email]);
   return rows[0];
