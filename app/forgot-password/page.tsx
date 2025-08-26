@@ -5,6 +5,7 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // ✅ toggle state
   const [step, setStep] = useState<"request" | "verify">("request");
   const [loading, setLoading] = useState(false);
 
@@ -90,14 +91,26 @@ export default function ForgotPasswordPage() {
             className="w-full p-2 border rounded"
             required
           />
-          <input
-            type="password"
-            placeholder="Enter new password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          />
+
+          {/* New password with eye toggle */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter new password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full p-2 border rounded pr-10"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
+
           <button
             type="submit"
             className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 disabled:opacity-50"
