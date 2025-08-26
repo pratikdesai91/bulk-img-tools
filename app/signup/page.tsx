@@ -28,32 +28,30 @@ export default function SignupPage() {
     }
   };
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch("/api/verify-otp", {
-      method: "POST",
-      body: JSON.stringify({ email, otp }),
-      headers: { "Content-Type": "application/json" },
-    });
+const handleVerify = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (res.ok) {
-      const stored = localStorage.getItem("tempUser");
-      if (stored) {
-        const user = JSON.parse(stored);
+  const stored = localStorage.getItem("tempUser");
+  if (!stored) return alert("No signup info found!");
 
-        // Save user to localStorage (replace with DB in real app)
-        const users = JSON.parse(localStorage.getItem("users") || "[]");
-        users.push(user);
-        localStorage.setItem("users", JSON.stringify(users));
-        localStorage.removeItem("tempUser");
+  const { firstName, lastName, password } = JSON.parse(stored);
 
-        alert("Signup successful!");
-        window.location.href = "/login";
-      }
-    } else {
-      alert("Invalid or expired OTP");
-    }
-  };
+  const res = await fetch("/api/verify-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp, firstName, lastName, password }),
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    alert("Signup successful!");
+    localStorage.removeItem("tempUser");
+    window.location.href = "/login";
+  } else {
+    alert(data.error);
+  }
+};
 
   return (
     <div className="max-w-md mx-auto mt-10">
