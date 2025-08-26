@@ -16,13 +16,14 @@ export default function TopBar() {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Load user from localStorage
   useEffect(() => {
     setMounted(true);
 
     const loadUser = () => {
       try {
         const loggedInUser = localStorage.getItem("loggedInUser");
-        setUser(loggedInUser ? (JSON.parse(loggedInUser) as User) : null);
+        setUser(loggedInUser ? JSON.parse(loggedInUser) : null);
       } catch {
         setUser(null);
       }
@@ -44,14 +45,13 @@ export default function TopBar() {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Logout user
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
-    setUser(null);
+    setUser(null); // instantly update UI
     router.push("/login");
   };
 
@@ -68,7 +68,7 @@ export default function TopBar() {
           <Link href="/aboutus" className="text-lg font-medium hover:text-blue-900">About us</Link>
           <Link href="/contact" className="text-lg font-medium hover:text-blue-900">Contact Us</Link>
         </div>
-        
+
         {/* Right side: auth */}
         <div className="flex items-center space-x-4 relative">
           {!user ? (
