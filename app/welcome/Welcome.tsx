@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Welcome from "./Welcome";
+
 
 interface User {
   firstName: string;
