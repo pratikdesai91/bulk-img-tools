@@ -3,11 +3,13 @@ import { ReactNode } from "react";
 import TopBar from "./components/TopBar";
 import Image from "next/image";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/react"; // ✅ Vercel Analytics
 
 export const metadata = {
+  title: "Bulk Image Tools", // ✅ Added title
   description: "Convert, resize, rename, and download images in bulk",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/favicon.ico", // ✅ Custom favicon
   },
 };
 
@@ -38,9 +40,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
         {/* Footer */}
         <footer className="bg-blue-300 shadow text-left text-sm">
-          <nav className="container mx-auto flex justify-between items-center p-4" />
-          © {new Date().getFullYear()} Bulk img tools. All rights reserved.
+          <div className="container mx-auto flex justify-between items-center p-4">
+            <span>© {new Date().getFullYear()} Bulk Img Tools. All rights reserved.</span>
+          </div>
         </footer>
+
+        {/* ✅ Vercel Analytics */}
+        <Analytics />
       </body>
     </html>
   );
