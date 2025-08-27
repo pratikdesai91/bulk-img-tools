@@ -31,7 +31,7 @@ export default function LoginPage() {
         window.dispatchEvent(new Event("storage"));
 
         alert(`Welcome, ${data.user.firstName}!`);
-        router.push("/"); // redirect to homepage
+        router.push("/welcome"); // redirect to homepage
       } else {
         alert(data.error || "Login failed");
       }
