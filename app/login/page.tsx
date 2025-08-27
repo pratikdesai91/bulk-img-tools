@@ -24,14 +24,9 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // ✅ Save user
         localStorage.setItem("loggedInUser", JSON.stringify(data.user));
-
-        // ✅ Trigger storage event so TopBar updates instantly
-        window.dispatchEvent(new Event("storage"));
-
-        alert(`Welcome, ${data.user.firstName}!`);
-        router.push("/welcome"); // redirect to homepage
+        // ✅ remove alert and just redirect
+        router.push("/welcome");
       } else {
         alert(data.error || "Login failed");
       }
