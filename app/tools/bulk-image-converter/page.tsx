@@ -205,15 +205,16 @@ export default function BulkImageConverter() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          🔄 Bulk Image Converter
+          🔄 Free Bulk Image Converter
         </h1>
         <p className="font-bold text-black-600 mb-6">
-          Bulk Image Converter | Convert JPG, PNG, GIF, AVIF & WebP Online
+          Convert JPG, PNG, GIF, AVIF & WebP Online — 100% Free
         </p>
         <p className="text-gray-600 mb-6">
           Convert multiple images to WebP, JPG, PNG, GIF, or AVIF in seconds.
           Upload or paste URLs, process instantly, and download all files in a
-          single ZIP. Fast & easy online image conversion.
+          single ZIP. Fast, secure & easy online image conversion — all done in
+          your browser.
         </p>
       </div>
 
@@ -332,6 +333,117 @@ export default function BulkImageConverter() {
           )}
         </div>
       )}
+
+      {/* Extra Content for SEO & UX */}
+      <div className="mt-12 space-y-10 text-gray-700">
+        {/* Features */}
+        <section>
+          <h2 className="text-2xl font-bold mb-3">Why use our Free Bulk Image Converter?</h2>
+          <ul className="list-disc ml-6 space-y-1">
+            <li>Completely free — no signup required.</li>
+            <li>Convert JPG, PNG, GIF, WebP, AVIF in seconds.</li>
+            <li>Supports both file upload and image URLs.</li>
+            <li>Batch processing with ZIP download.</li>
+            <li>Works in your browser — no files are uploaded to our servers.</li>
+          </ul>
+        </section>
+
+        {/* How to Use */}
+        <section>
+          <h2 className="text-2xl font-bold mb-3">How to use the converter</h2>
+          <ol className="list-decimal ml-6 space-y-1">
+            <li>Drag & drop or upload your image files.</li>
+            <li>Paste image URLs if you want to convert from the web.</li>
+            <li>Select the output format (WebP, JPG, PNG, GIF, AVIF).</li>
+            <li>Click <b>Convert</b> and wait for processing.</li>
+            <li>Download all converted images as a single ZIP.</li>
+          </ol>
+        </section>
+
+        {/* Supported Formats */}
+        <section>
+          <h2 className="text-2xl font-bold mb-3">Supported Image Formats</h2>
+          <p>
+            You can upload images in <b>JPG, PNG, GIF, BMP, WebP, AVIF</b> and convert
+            them into modern formats like <b>WebP</b> or <b>AVIF</b> for smaller size and
+            better performance.
+          </p>
+        </section>
+
+        {/* FAQ */}
+        <section>
+          <h2 className="text-2xl font-bold mb-3">Frequently Asked Questions</h2>
+          <div className="space-y-3">
+            <div>
+              <p className="font-semibold">🔒 Are my images safe?</p>
+              <p>Yes! All conversions happen in your browser. Your images never leave your device.</p>
+            </div>
+            <div>
+              <p className="font-semibold">📁 Is there a file size limit?</p>
+              <p>The converter works best for images under 20MB each, but larger files may also work depending on your device.</p>
+            </div>
+            <div>
+              <p className="font-semibold">💻 Does it work on mobile?</p>
+              <p>Yes, the tool works on desktop, tablet, and mobile devices.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Format Comparison Table */}
+        <section>
+          <h2 className="text-2xl font-bold mb-3">Image Format Comparison</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-300 text-sm text-left">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border px-3 py-2">Format</th>
+                  <th className="border px-3 py-2">Best For</th>
+                  <th className="border px-3 py-2">Compression</th>
+                  <th className="border px-3 py-2">Transparency</th>
+                  <th className="border px-3 py-2">Animation</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border px-3 py-2 font-medium">JPEG</td>
+                  <td className="border px-3 py-2">Photos & realistic images</td>
+                  <td className="border px-3 py-2">Lossy</td>
+                  <td className="border px-3 py-2">❌</td>
+                  <td className="border px-3 py-2">❌</td>
+                </tr>
+                <tr>
+                  <td className="border px-3 py-2 font-medium">PNG</td>
+                  <td className="border px-3 py-2">Logos, graphics, text</td>
+                  <td className="border px-3 py-2">Lossless</td>
+                  <td className="border px-3 py-2">✅</td>
+                  <td className="border px-3 py-2">❌</td>
+                </tr>
+                <tr>
+                  <td className="border px-3 py-2 font-medium">GIF</td>
+                  <td className="border px-3 py-2">Simple animations</td>
+                  <td className="border px-3 py-2">Lossy / Limited colors</td>
+                  <td className="border px-3 py-2">✅</td>
+                  <td className="border px-3 py-2">✅</td>
+                </tr>
+                <tr>
+                  <td className="border px-3 py-2 font-medium">WebP</td>
+                  <td className="border px-3 py-2">Web images, modern browsers</td>
+                  <td className="border px-3 py-2">Lossy / Lossless</td>
+                  <td className="border px-3 py-2">✅</td>
+                  <td className="border px-3 py-2">✅</td>
+                </tr>
+                <tr>
+                  <td className="border px-3 py-2 font-medium">AVIF</td>
+                  <td className="border px-3 py-2">Next-gen compression</td>
+                  <td className="border px-3 py-2">Superior Lossy/Lossless</td>
+                  <td className="border px-3 py-2">✅</td>
+                  <td className="border px-3 py-2">✅</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

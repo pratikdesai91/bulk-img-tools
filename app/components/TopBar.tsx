@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -14,19 +14,13 @@ export default function TopBar() {
   const [mounted, setMounted] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load user from localStorage
   useEffect(() => {
     setMounted(true);
 
     const loadUser = () => {
-      try {
-        const loggedInUser = localStorage.getItem("loggedInUser");
-        setUser(loggedInUser ? JSON.parse(loggedInUser) : null);
-      } catch {
-        setUser(null);
-      }
+      const loggedInUser = localStorage.getItem("loggedInUser");
+      setUser(loggedInUser ? (JSON.parse(loggedInUser) as User) : null);
     };
 
     loadUser();
@@ -37,21 +31,9 @@ export default function TopBar() {
     };
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Logout user
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
-    setUser(null); // instantly update UI
+    setUser(null);
     router.push("/login");
   };
 
@@ -66,9 +48,10 @@ export default function TopBar() {
           <Link href="/tools/bulk-image-converter" className="text-lg font-medium hover:text-blue-900">Converter</Link>
           <Link href="/tools" className="text-lg font-medium hover:text-blue-900">Tools</Link>
           <Link href="/aboutus" className="text-lg font-medium hover:text-blue-900">About us</Link>
+          <Link href="/blogs" className="text-lg font-medium hover:text-blue-900">Blogs</Link>
           <Link href="/contact" className="text-lg font-medium hover:text-blue-900">Contact Us</Link>
         </div>
-
+        
         {/* Right side: auth */}
         <div className="flex items-center space-x-4 relative">
           {!user ? (
@@ -87,32 +70,33 @@ export default function TopBar() {
               </Link>
             </>
           ) : (
-            <div className="relative" ref={dropdownRef}>
-              {/* Avatar button with initials */}
+            <div className="relative">
+              {/* User name button */}
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-10 h-10 flex items-center justify-center bg-blue-700 text-white font-bold rounded-md hover:bg-blue-800"
+                className="px-4 py-2 bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-800"
               >
-                {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"}
+                {user.firstName} {user.lastName}
               </button>
 
               {/* Dropdown */}
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  {/* User Info */}
                   <div className="px-4 py-3 border-b border-gray-200">
-                    <p className="font-semibold text-gray-900">
-                      {user.firstName} {user.lastName}
-                    </p>
-                    {user.email && (
-                      <p className="text-sm text-gray-600">{user.email}</p>
-                    )}
+                    <p className="font-semibold">{user.firstName} {user.lastName}</p>
+                    {user.email && <p className="text-sm text-gray-600">{user.email}</p>}
                   </div>
+
+                  {/* Profile option */}
                   <Link
-                    href="/components/profile"
+                    href="/components/profilepage"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
                     Profile
                   </Link>
+
+                  {/* Logout */}
                   <button
                     onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 text-red-600 font-semibold hover:bg-gray-100 rounded-b-lg"
