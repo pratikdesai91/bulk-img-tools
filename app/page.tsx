@@ -90,7 +90,7 @@ export default function Home() {
           {/* Feature 3 */}
           <SwiperSlide>
             <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition">
-              <Link href="/tools/bulk-image-renaming">
+              <Link href="/tools/bulk-image-renamin">
                 <h3 className="text-xl font-semibold mb-2">
                   ✏️ Bulk Image Renaming
                 </h3>
