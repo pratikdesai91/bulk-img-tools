@@ -2,6 +2,8 @@
 
 import { useRef, useState, useEffect } from "react";
 import Papa, { ParseResult } from "papaparse";
+import useFeedback from "@/app/hooks/useFeedback";
+import FeedbackPopup from "@/app/components/FeedbackPopup";
 
 /** --- File System Access API --- */
 declare global {
@@ -43,6 +45,11 @@ export default function BulkImageMover() {
         typeof window.showDirectoryPicker === "function"
     );
   }, []);
+
+  // ⭐ Feedback hook (triggered when all files moved successfully)
+  const { feedbackOpen, setFeedbackOpen } = useFeedback(
+    status === "✅ All files moved successfully."
+  );
 
   const handleChooseFiles = () => fileInputRef.current?.click();
   const handleChooseCsv = () => csvInputRef.current?.click();
@@ -273,6 +280,12 @@ export default function BulkImageMover() {
         ⚠️ <strong>Warning:</strong> Please leave your PC idle while
         processing large batches to avoid freeze.
       </div>
+
+      {/* Feedback popup */}
+      <FeedbackPopup
+        show={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+      />
     </div>
   );
 }

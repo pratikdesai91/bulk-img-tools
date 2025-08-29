@@ -1,10 +1,15 @@
 "use client";
 import { useState } from "react";
+import FeedbackPopup from "@/app/components/FeedbackPopup";
+import useFeedback from "@/app/hooks/useFeedback";
 
 export default function MultiImageDownloaderPage() {
   const [urls, setUrls] = useState<string>("");
   const [failed, setFailed] = useState<string[]>([]);
   const [taskCompleted, setTaskCompleted] = useState(false);
+
+  // ⭐ Feedback hook → opens popup when downloads finish (taskCompleted === true)
+  const { feedbackOpen, setFeedbackOpen } = useFeedback(taskCompleted);
 
   const downloadImage = async (url: string) => {
     try {
@@ -38,7 +43,7 @@ export default function MultiImageDownloaderPage() {
     }
 
     setFailed(failedUrls);
-    setTaskCompleted(true);
+    setTaskCompleted(true); // ✅ triggers feedback popup
   };
 
   const downloadFailedFile = (type: "txt" | "csv") => {
@@ -123,6 +128,12 @@ export default function MultiImageDownloaderPage() {
           ✅ All images downloaded successfully!
         </p>
       )}
+
+      {/* ⭐ Feedback popup */}
+      <FeedbackPopup
+        show={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+      />
     </div>
   );
 }

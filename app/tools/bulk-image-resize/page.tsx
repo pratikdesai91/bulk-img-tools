@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import FeedbackPopup from "@/app/components/FeedbackPopup";
 
 /** ✅ Extend only missing parts instead of redeclaring */
 declare global {
@@ -8,13 +9,27 @@ declare global {
     showDirectoryPicker?: () => Promise<FileSystemDirectoryHandle>;
   }
 
-  // In case TS lib.dom is outdated, add fallback
+  // In case TS lib.dom is outdated, add fallbacks
   interface FileSystemDirectoryHandle {
-    getFileHandle(name: string, options?: { create?: boolean }): Promise<FileSystemFileHandle>;
+    getFileHandle(
+      name: string,
+      options?: { create?: boolean }
+    ): Promise<FileSystemFileHandle>;
   }
 
   interface FileSystemFileHandle {
-    createWritable(options?: FileSystemCreateWritableOptions): Promise<FileSystemWritableFileStream>;
+    createWritable(
+      options?: FileSystemCreateWritableOptions
+    ): Promise<FileSystemWritableFileStream>;
+  }
+
+  interface FileSystemCreateWritableOptions {
+    keepExistingData?: boolean;
+  }
+
+  interface FileSystemWritableFileStream {
+    write(data: Blob | BufferSource | string): Promise<void>;
+    close(): Promise<void>;
   }
 }
 
@@ -22,7 +37,8 @@ type Unit = "px" | "in" | "cm" | "mm" | "pt" | "pc";
 
 export default function BulkImageResizePage() {
   const [files, setFiles] = useState<File[]>([]);
-  const [outDirHandle, setOutDirHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [outDirHandle, setOutDirHandle] =
+    useState<FileSystemDirectoryHandle | null>(null);
   const [width, setWidth] = useState<string>("");
   const [height, setHeight] = useState<string>("");
   const [unit, setUnit] = useState<Unit>("px");
@@ -31,13 +47,29 @@ export default function BulkImageResizePage() {
   const [failed, setFailed] = useState<string[]>([]);
   const [processed, setProcessed] = useState<number>(0);
 
+  // ⭐ feedback popup
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  // track running state to know when we finished
+  const [isRunning, setIsRunning] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const DPI = 96;
 
   const [fsSupport, setFsSupport] = useState<boolean>(false);
   useEffect(() => {
-    setFsSupport(typeof window !== "undefined" && typeof window.showDirectoryPicker === "function");
+    setFsSupport(
+      typeof window !== "undefined" &&
+        typeof window.showDirectoryPicker === "function"
+    );
   }, []);
+
+  // 🔔 Auto-open feedback when done successfully (even if a few failed)
+  useEffect(() => {
+    if (!isRunning && files.length > 0 && processed === files.length) {
+      const t = setTimeout(() => setFeedbackOpen(true), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [isRunning, processed, files.length]);
 
   const handleChooseFiles = () => fileInputRef.current?.click();
 
@@ -49,7 +81,9 @@ export default function BulkImageResizePage() {
   const handleChooseOutputFolder = async () => {
     try {
       if (!fsSupport || !window.showDirectoryPicker) {
-        setStatus("This browser does not support choosing a folder. Files will download individually.");
+        setStatus(
+          "This browser does not support choosing a folder. Files will download individually."
+        );
         setOutDirHandle(null);
         return;
       }
@@ -63,19 +97,29 @@ export default function BulkImageResizePage() {
 
   const unitToPixels = (value: number, u: Unit): number => {
     switch (u) {
-      case "px": return value;
-      case "in": return value * DPI;
-      case "cm": return (value / 2.54) * DPI;
-      case "mm": return (value / 25.4) * DPI;
-      case "pt": return (value / 72) * DPI;
-      case "pc": return (value / 6) * DPI;
+      case "px":
+        return value;
+      case "in":
+        return value * DPI;
+      case "cm":
+        return (value / 2.54) * DPI;
+      case "mm":
+        return (value / 25.4) * DPI;
+      case "pt":
+        return (value / 72) * DPI;
+      case "pc":
+        return (value / 6) * DPI;
     }
   };
 
   const loadImageFromFile = (file: File): Promise<HTMLImageElement> =>
     new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve(img);
+      img.onload = () => {
+        // revoke to avoid memory leaks
+        URL.revokeObjectURL(img.src);
+        resolve(img);
+      };
       img.onerror = () => reject(new Error("Image load error"));
       img.src = URL.createObjectURL(file);
     });
@@ -110,6 +154,7 @@ export default function BulkImageResizePage() {
         return;
       }
 
+      // White background for JPEG-like outputs to avoid black transparency
       if (preferType.includes("jpeg") || preferType.includes("jpg")) {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, targetW, targetH);
@@ -129,21 +174,28 @@ export default function BulkImageResizePage() {
       );
     });
 
-  const saveBlobToChosenFolder = async (blob: Blob, filename: string): Promise<void> => {
+  const saveBlobToChosenFolder = async (
+    blob: Blob,
+    filename: string
+  ): Promise<void> => {
     if (!outDirHandle) return;
-    const fileHandle = await outDirHandle.getFileHandle(filename, { create: true });
+    const fileHandle = await outDirHandle.getFileHandle(filename, {
+      create: true,
+    });
     const writable = await fileHandle.createWritable();
     await writable.write(blob);
     await writable.close();
   };
 
   const triggerDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
+    URL.revokeObjectURL(url);
   };
 
   const startResize = async () => {
@@ -167,6 +219,7 @@ export default function BulkImageResizePage() {
     const targetH = unitToPixels(h, unit);
 
     setStatus(`Resizing ${files.length} image(s)...`);
+    setIsRunning(true);
 
     for (const [index, file] of files.entries()) {
       try {
@@ -189,6 +242,7 @@ export default function BulkImageResizePage() {
     }
 
     setStatus("Done.");
+    setIsRunning(false);
   };
 
   return (
@@ -199,16 +253,22 @@ export default function BulkImageResizePage() {
       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
         <h2 className="text-lg font-semibold text-blue-700 mb-2">How to Use:</h2>
         <ol className="list-decimal list-inside space-y-1 text-gray-700">
-          <li>Browse image from local drive</li>
-          <li>Select resized folder you want to save images.</li>
-          <li>Fill <b>Width and Height</b> boxes with numbers.</li>
-          <li>Click Proceed to Start resizing.</li>
+          <li>Browse image(s) from your local drive.</li>
+          <li>Select a folder to save resized images (or download individually).</li>
+          <li>
+            Fill <b>Width</b> and <b>Height</b>, then choose <b>Units</b>.
+          </li>
+          <li>Click <b>Start Resize</b>.</li>
         </ol>
       </div>
 
       {/* Buttons */}
       <div className="mb-4">
-        <button onClick={handleChooseFiles} className="bg-gray-800 text-white px-4 py-2 rounded">
+        <button
+          onClick={handleChooseFiles}
+          className="bg-gray-800 text-white px-4 py-2 rounded"
+          disabled={isRunning}
+        >
           Browse Images
         </button>
         <input
@@ -225,7 +285,11 @@ export default function BulkImageResizePage() {
       </div>
 
       <div className="mb-6">
-        <button onClick={handleChooseOutputFolder} className="bg-gray-800 text-white px-4 py-2 rounded">
+        <button
+          onClick={handleChooseOutputFolder}
+          className="bg-gray-800 text-white px-4 py-2 rounded"
+          disabled={isRunning}
+        >
           Save to Folder
         </button>
         <span className="ml-3 text-gray-700">
@@ -239,18 +303,22 @@ export default function BulkImageResizePage() {
           <label className="block text-sm font-medium mb-1">Width</label>
           <input
             type="number"
+            placeholder="e.g., 800"
             value={width}
             onChange={(e) => setWidth(e.target.value)}
             className="w-full border px-3 py-2 rounded"
+            disabled={isRunning}
           />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Height</label>
           <input
             type="number"
+            placeholder="e.g., 600"
             value={height}
             onChange={(e) => setHeight(e.target.value)}
             className="w-full border px-3 py-2 rounded"
+            disabled={isRunning}
           />
         </div>
         <div>
@@ -259,6 +327,7 @@ export default function BulkImageResizePage() {
             value={unit}
             onChange={(e) => setUnit(e.target.value as Unit)}
             className="w-full border px-3 py-2 rounded"
+            disabled={isRunning}
           >
             <option value="px">Pixels</option>
             <option value="in">Inches</option>
@@ -273,16 +342,21 @@ export default function BulkImageResizePage() {
       {/* Start Button */}
       <button
         onClick={startResize}
-        className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800"
+        className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 disabled:opacity-60"
+        disabled={isRunning}
       >
-        Start Resize
+        {isRunning ? "Resizing..." : "Start Resize"}
       </button>
 
       {/* Status */}
       {(status || progress) && (
         <div className="mt-4">
-          <p>{status}</p>
-          <p className="text-sm text-gray-600">Processed: {processed} / {files.length}</p>        </div>
+          <p className="font-medium">{status}</p>
+          <p className="text-sm text-gray-600">{progress}</p>
+          <p className="text-sm text-gray-600">
+            Processed: {processed} / {files.length}
+          </p>
+        </div>
       )}
 
       {/* Failed */}
@@ -296,6 +370,12 @@ export default function BulkImageResizePage() {
           </ul>
         </div>
       )}
+
+      {/* ⭐ Feedback Popup */}
+      <FeedbackPopup
+        show={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+      />
     </div>
   );
 }
