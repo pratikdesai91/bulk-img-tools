@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import FeedbackPopup from "@/app/components/FeedbackPopup";
-import useFeedback from "@/app/hooks/useFeedback";
+import useFeedback from "@/app/hooks/useFeedbackTrigger";
 
 export default function MultiImageDownloaderPage() {
   const [urls, setUrls] = useState<string>("");

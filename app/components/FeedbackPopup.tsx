@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 
+type SubmitPayload = { rating: number; message: string };
+
 export default function FeedbackPopup({
   show,
   onClose,
@@ -8,14 +10,14 @@ export default function FeedbackPopup({
 }: {
   show: boolean;
   onClose: () => void;
-  onSubmit?: (data: { rating: number; message: string }) => void;
+  onSubmit?: (data: SubmitPayload) => void;
 }) {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [feedback, setFeedback] = useState("");
 
   const handleSubmit = () => {
-    if (onSubmit) onSubmit({ rating, message: feedback.trim() });
+    onSubmit?.({ rating, message: feedback.trim() });
     setFeedback("");
     setRating(0);
     onClose();
@@ -27,8 +29,6 @@ export default function FeedbackPopup({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md text-center">
         <h2 className="text-xl font-bold mb-4">⭐ Rate Your Experience</h2>
-
-        {/* Stars */}
         <div className="flex justify-center mb-4">
           {[1, 2, 3, 4, 5].map((star) => (
             <button

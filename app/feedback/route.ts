@@ -1,8 +1,11 @@
-import { Resend } from "resend";
+// app/api/feedback/route.ts
+export const runtime = "nodejs"; // ✅ required for Nodemailer (not Edge)
+
+import nodemailer, { type SentMessageInfo } from "nodemailer";
 
 type Body = {
-  rating: number;
-  message: string;
+  rating?: number;
+  message?: string;
   page?: string;
   url?: string;
   userAgent?: string;
@@ -10,44 +13,81 @@ type Body = {
 
 export async function POST(req: Request) {
   try {
-    const data = (await req.json()) as Partial<Body>;
+    // Parse + normalize body
+    const raw = await req.json().catch(() => ({}));
+    const data = raw as Partial<Body>;
+    const rating = Number.isFinite(Number(data.rating)) ? Number(data.rating) : 0;
+    const message = (data.message ?? "").toString().trim();
+    const page = (data.page ?? "unknown").toString();
+    const url = (data.url ?? "").toString();
+    const userAgent = (data.userAgent ?? "").toString();
 
-    const rating = Number(data.rating ?? 0);
-    const message = String(data.message ?? "").trim();
-    const page = String(data.page ?? "unknown");
-    const url = String(data.url ?? "");
-    const userAgent = String(data.userAgent ?? "");
+    // Load envs
+    const {
+      SMTP_HOST,
+      SMTP_PORT,
+      SMTP_USER,
+      SMTP_PASS,
+      SMTP_SECURE,
+      FEEDBACK_TO_EMAIL,
+      FEEDBACK_FROM_EMAIL,
+    } = process.env;
 
-    if (!process.env.RESEND_API_KEY || !process.env.FEEDBACK_TO_EMAIL || !process.env.FEEDBACK_FROM_EMAIL) {
-      return new Response(JSON.stringify({ error: "Email env not configured" }), { status: 500 });
+    const missing = [
+      !SMTP_HOST ? "SMTP_HOST" : null,
+      !SMTP_PORT ? "SMTP_PORT" : null,
+      !SMTP_USER ? "SMTP_USER" : null,
+      !SMTP_PASS ? "SMTP_PASS" : null,
+      !FEEDBACK_TO_EMAIL ? "FEEDBACK_TO_EMAIL" : null,
+      !FEEDBACK_FROM_EMAIL ? "FEEDBACK_FROM_EMAIL" : null,
+    ].filter((v): v is string => v !== null);
+
+    if (missing.length) {
+      return new Response(
+        JSON.stringify({ error: `Missing env: ${missing.join(", ")}` }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
     }
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: Number(SMTP_PORT),
+      secure: SMTP_SECURE === "true", // true for 465, false for 587
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    });
 
-    const subject = `New Feedback (${rating}★) — ${page}`;
+    const stars = "⭐".repeat(Math.max(0, Math.min(5, rating)));
     const html = `
       <div style="font-family:system-ui,Segoe UI,Arial;">
         <h2>New Feedback</h2>
-        <p><b>Rating:</b> ${"⭐".repeat(Math.min(5, Math.max(0, rating)))}</p>
+        <p><b>Rating:</b> ${stars || "(none)"} </p>
         <p><b>Message:</b><br/>${message ? message.replace(/\n/g, "<br/>") : "<i>(no message)</i>"}</p>
         <hr/>
         <p><b>Page:</b> ${page}</p>
         <p><b>URL:</b> ${url}</p>
         <p><b>User-Agent:</b> ${userAgent}</p>
-        <p>Time: ${new Date().toISOString()}</p>
+        <p><b>Time:</b> ${new Date().toISOString()}</p>
       </div>
     `;
 
-    await resend.emails.send({
-      from: process.env.FEEDBACK_FROM_EMAIL,
-      to: process.env.FEEDBACK_TO_EMAIL,
-      subject,
+    const info: SentMessageInfo = await transporter.sendMail({
+      from: FEEDBACK_FROM_EMAIL, // For Gmail, this should match the authenticated user/domain
+      to: FEEDBACK_TO_EMAIL,
+      subject: `New Feedback (${rating}★) — ${page}`,
       html,
     });
 
-    return new Response(JSON.stringify({ ok: true }), { status: 200 });
-  } catch (err) {
-    console.error("Feedback email error:", err);
-    return new Response(JSON.stringify({ error: "Failed to send email" }), { status: 500 });
+    return new Response(JSON.stringify({ ok: true, id: info.messageId }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err: unknown) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("Feedback email error:", detail);
+    return new Response(JSON.stringify({ error: "Failed to send email", detail }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
