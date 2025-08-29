@@ -3,23 +3,19 @@ import { ReactNode } from "react";
 import TopBar from "./components/TopBar";
 import Image from "next/image";
 import Link from "next/link";
-import { Analytics } from "@vercel/analytics/react"; 
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react"; // ✅ Vercel Analytics
 
 export const metadata = {
-  title: "Bulk Image Tools",
+  title: "Bulk Image Tools", // ✅ Added title
   description: "Convert, resize, rename, and download images in bulk",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/favicon.ico", // ✅ Custom favicon
   },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <title>Bulk Image Tools</title>
-      </head>
       <body className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
         {/* 🔵 Navigation Bar */}
         <header className="bg-blue-300 shadow">
@@ -31,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 alt="Bulk image tools logo"
                 width={40}
                 height={40}
-                priority
+                priority // 🚀 ensures fast load
               />
               <span className="text-black font-bold">Bulk Img Tool</span>
             </Link>
@@ -45,15 +41,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Footer */}
         <footer className="bg-blue-300 shadow text-left text-sm">
           <div className="container mx-auto flex justify-between items-center p-4">
-            <span>
-              © {new Date().getFullYear()} Bulk Img Tools. All rights reserved.
-            </span>
+            <span>© {new Date().getFullYear()} Bulk Img Tools. All rights reserved.</span>
           </div>
         </footer>
 
-        {/* ✅ Vercel Analytics + Speed Insights */}
+        {/* ✅ Vercel Analytics */}
         <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );
