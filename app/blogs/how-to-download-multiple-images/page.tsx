@@ -23,7 +23,7 @@ export default function HowToDownloadMultipleImagesPage() {
         </a>
       </p>
       <Image
-        src="/screenshots/step1.jpg"
+        src="/screenshots/step1.png"
         alt="Bulk Image Tools homepage"
         width={800}
         height={450}
