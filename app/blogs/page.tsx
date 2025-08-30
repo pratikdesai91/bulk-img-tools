@@ -28,29 +28,38 @@ export default function Tools() {
 
           {/* Feature 3 */}
           <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition">
-            <Link href="/tools/bulk-image-renamin">
-            <h3 className="text-xl font-semibold mb-2">✏️ Bulk Image Renaming</h3>
+            <Link href="/blogs/how-to-download-multiple-images">
+            <h3 className="text-xl font-semibold mb-2">Download Multiple Images</h3>
             <p className="text-gray-600">
-              Organize your files better with automatic batch renaming options.
+              Download Multiple Images at once
             </p>
             </Link>
           </div>
 
           {/* Feature 4 */}
           <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition">
-            <Link href="/tools/move-images-to-folders">
-            <h3 className="text-xl font-semibold mb-2">📂 Move Images to Folders</h3>
+            <Link href="/blogs/bulk-images-resize">
+            <h3 className="text-xl font-semibold mb-2">Quick Guide: Bulk Images Resize</h3>
             <p className="text-gray-600">
-              Sort and move bulk images into folders instantly for better project organization.
+              Resize Multiple Images at once
             </p>
             </Link>
           </div>{/* Feature 5 */}
           <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition">
             
-          <Link href="/tools/bulk-image-converter">
-            <h3 className="text-xl font-semibold mb-2">🔄 Bulk Image Converter</h3>
+          <Link href="/blogs/bulk-image-renamin">
+            <h3 className="text-xl font-semibold mb-2">Quick Guide: Bulk Image Renaming</h3>
             <p className="text-gray-600">
-              Convert multiple images to WebP, JPG, PNG, GIF, or AVIF — fast, easy, and downloadable as a ZIP
+              Rename Multiple Images at once
+            </p>
+            </Link>
+          </div>
+          {/* Feature 5 */}
+          <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition">
+            <Link href="/blogs/move-images-to-folders">
+            <h3 className="text-xl font-semibold mb-2">Quick Guide: Bulk Image Renamer & Mover</h3>
+            <p className="text-gray-600">
+              Rename Multiple Images and move to sub folders at once
             </p>
             </Link>
           </div>
