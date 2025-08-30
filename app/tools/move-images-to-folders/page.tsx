@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Papa from "papaparse";
+import Link from "next/link";
 import FeedbackPopup from "@/app/components/FeedbackPopup";
 
 /** --- File System Access API --- */
@@ -136,7 +137,7 @@ export default function BulkImageMover() {
       .filter(({ r }) => !r.original_name || !r.new_name);
     if (invalidRows.length) {
       setStatus("CSV has missing values. Please ensure original_name and new_name are filled.");
-      setErrors(invalidRows.map(({ i }) => `Row ${i + 2}: Missing original_name or new_name`)); // +2 accounts for header + 1-based index
+      setErrors(invalidRows.map(({ i }) => `Row ${i + 2}: Missing original_name or new_name`));
       setRunResult("error");
       return;
     }
@@ -188,90 +189,175 @@ export default function BulkImageMover() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-2">Bulk Image Renamer & Mover</h1>
-      <p className="mb-4 text-gray-700">
-        Sort, rename, and move images into folders instantly based on a CSV mapping file.
-      </p>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* ---------- GRID LAYOUT ---------- */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* ---------- MAIN CONTENT ---------- */}
+        <div className="lg:col-span-2">
+          <h1 className="text-3xl font-bold mb-2">Bulk Image Renamer & Mover</h1>
+          <p className="mb-4 text-gray-700">
+            Sort, rename, and move images into folders instantly based on a CSV mapping file.
+          </p>
 
-      {/* ✅ Instructions Section */}
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
-        <h2 className="text-lg font-semibold text-blue-700 mb-2">How to Use</h2>
-        <ol className="list-decimal list-inside space-y-1 text-gray-700">
-          <li>Click <b>Download CSV Template</b> and open <code>move-images-to-folders.csv</code>.</li>
-          <li>
-            Fill columns: <b>original_name</b> and <b>new_name</b> (include file extensions like
-            <code> .jpg</code>, <code> .png</code>). Optionally add <b>folder_name</b> to create/target a folder.
-          </li>
-          <li>Upload the CSV, browse and select the images, then choose an output folder.</li>
-          <li>Click <b>Proceed</b> to start moving/renaming in batches.</li>
-        </ol>
-      </div>
+          {/* ✅ Instructions Section */}
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
+            <h2 className="text-lg font-semibold text-blue-700 mb-2">How to Use</h2>
+            <ol className="list-decimal list-inside space-y-1 text-gray-700">
+              <li>Click <b>Download CSV Template</b> and open <code>move-images-to-folders.csv</code>.</li>
+              <li>
+                Fill <b>original_name</b> and <b>new_name</b> (include extensions like <code>.jpg</code>, <code>.png</code>).
+                Optionally add <b>folder_name</b> to target a sub-folder.
+              </li>
+              <li>Upload the CSV, browse and select the images, then choose an output folder.</li>
+              <li>Click <b>Proceed</b> to start moving/renaming in batches.</li>
+            </ol>
+          </div>
 
-      {/* Actions */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <button onClick={downloadTemplate} className="bg-blue-600 text-white px-4 py-2 rounded">
-          Download CSV Template
-        </button>
+          {/* Actions */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <button onClick={downloadTemplate} className="bg-blue-600 text-white px-4 py-2 rounded">
+              Download CSV Template
+            </button>
 
-        <button onClick={handleChooseCsv} className="bg-gray-800 text-white px-4 py-2 rounded">
-          Upload CSV
-        </button>
-        <input ref={csvInputRef} type="file" accept=".csv" onChange={onCsvSelected} className="hidden" />
-        <span className="text-gray-700">
-          {csvData.length > 0 ? `${csvData.length} row(s) loaded` : "No CSV uploaded"}
-        </span>
-      </div>
+            <button onClick={handleChooseCsv} className="bg-gray-800 text-white px-4 py-2 rounded">
+              Upload CSV
+            </button>
+            <input ref={csvInputRef} type="file" accept=".csv" onChange={onCsvSelected} className="hidden" />
+            <span className="text-gray-700">
+              {csvData.length > 0 ? `${csvData.length} row(s) loaded` : "No CSV uploaded"}
+            </span>
+          </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <button onClick={handleChooseFiles} className="bg-gray-800 text-white px-4 py-2 rounded">
-          Browse Images
-        </button>
-        <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={onFilesSelected} className="hidden" />
-        <span className="text-gray-700">
-          {files.length > 0 ? `${files.length} file(s) selected` : "No files selected"}
-        </span>
-      </div>
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <button onClick={handleChooseFiles} className="bg-gray-800 text-white px-4 py-2 rounded">
+              Browse Images
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={onFilesSelected} className="hidden" />
+            <span className="text-gray-700">
+              {files.length > 0 ? `${files.length} file(s) selected` : "No files selected"}
+            </span>
+          </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <button onClick={handleChooseOutputFolder} className="bg-gray-800 text-white px-4 py-2 rounded">
-          Choose Output Folder
-        </button>
-        <span className="text-gray-700">{outDirHandle ? "Folder selected" : "No folder chosen"}</span>
-      </div>
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <button onClick={handleChooseOutputFolder} className="bg-gray-800 text-white px-4 py-2 rounded">
+              Choose Output Folder
+            </button>
+            <span className="text-gray-700">{outDirHandle ? "Folder selected" : "No folder chosen"}</span>
+          </div>
 
-      <button onClick={proceed} className="bg-green-600 text-white px-6 py-2 rounded">
-        Proceed
-      </button>
+          <button onClick={proceed} className="bg-green-600 text-white px-6 py-2 rounded">
+            Proceed
+          </button>
 
-      {/* progress */}
-      {status && (
-        <div className="mt-4">
-          <p>{status}</p>
-          {processedCount > 0 && csvData.length > 0 && (
-            <p>
-              Processed {processedCount} / {csvData.length}
-            </p>
+          {/* progress */}
+          {status && (
+            <div className="mt-4">
+              <p>{status}</p>
+              {processedCount > 0 && csvData.length > 0 && (
+                <p>
+                  Processed {processedCount} / {csvData.length}
+                </p>
+              )}
+            </div>
           )}
-        </div>
-      )}
 
-      {errors.length > 0 && (
-        <div className="mt-6 p-4 border bg-red-50 rounded">
-          <h3 className="font-semibold text-red-700 mb-2">Errors</h3>
-          <ul className="list-disc list-inside text-red-800">
-            {errors.map((e, i) => (
-              <li key={i}>{e}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+          {errors.length > 0 && (
+            <div className="mt-6 p-4 border bg-red-50 rounded">
+              <h3 className="font-semibold text-red-700 mb-2">Errors</h3>
+              <ul className="list-disc list-inside text-red-800">
+                {errors.map((e, i) => (
+                  <li key={i}>{e}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-      {/* Warning */}
-      <div className="mt-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded">
-        ⚠️ <strong>Heads up:</strong> The File System Access API works best in Chromium-based browsers.
-        For large batches, avoid heavy multitasking while processing.
+          {/* Warning */}
+          <div className="mt-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded">
+            ⚠️ <strong>Heads up:</strong> The File System Access API works best in Chromium-based browsers.
+            For large batches, avoid heavy multitasking while processing.
+          </div>
+        </div>
+
+        {/* ---------- RIGHT SIDEBAR ---------- */}
+        <aside className="space-y-8">
+          <div className="p-4 bg-white border rounded-lg shadow">
+            <h3 className="font-semibold text-lg mb-3">📘 Related Blog Guides</h3>
+            <ul className="list-disc list-inside space-y-2 text-gray-700">
+              <li>
+                <Link href="/blogs/move-images-to-folders" className="text-blue-700 hover:underline">
+                  Quick Guide: Bulk Image Renamer & Mover
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog/how-to-optimize-and-convert-images-online-for-free" className="text-blue-700 hover:underline">
+                  Optimize and Convert Images Online
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog/image-format" className="text-blue-700 hover:underline">
+                  Learn About Image Formats
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="p-4 bg-white border rounded-lg shadow">
+            <h3 className="font-semibold text-lg mb-3">🛠️ Try Other Tools</h3>
+            <ul className="list-disc list-inside space-y-2 text-gray-700">
+              <li><Link href="/tools/bulk-image-download" className="text-blue-700 hover:underline">📥 Bulk Image Download</Link></li>
+              <li><Link href="/tools/bulk-image-resize" className="text-blue-700 hover:underline">📐 Bulk Image Resize</Link></li>
+              <li><Link href="/tools/bulk-image-converter" className="text-blue-700 hover:underline">🔄 Bulk Image Converter</Link></li>
+              <li><Link href="/tools/bulk-image-renamin" className="text-blue-700 hover:underline">✏️ Bulk Image Renaming</Link></li>
+            </ul>
+          </div>
+        </aside>
       </div>
+
+      {/* ---------- FAQ SECTION ---------- */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-semibold text-lg text-gray-800">
+              What is the purpose of the CSV file?
+            </h3>
+            <p className="text-gray-600">
+              The CSV defines how each file should be renamed and optionally what folder to move it into.
+              Columns: <code>original_name</code>, <code>new_name</code>, and optional <code>folder_name</code>.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-lg text-gray-800">
+              Can I create new folders automatically?
+            </h3>
+            <p className="text-gray-600">
+              Yes! If you specify a <code>folder_name</code> in the CSV, the tool will create that folder if it doesn’t exist.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-lg text-gray-800">
+              Which browsers are supported?
+            </h3>
+            <p className="text-gray-600">
+              The File System Access API works best in Chromium browsers (Chrome, Edge, Brave).
+              Safari and Firefox may not fully support it.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-lg text-gray-800">
+              Is there a file limit?
+            </h3>
+            <p className="text-gray-600">
+              There’s no strict limit, but processing very large batches may cause your browser to slow down.
+              We recommend working in chunks of a few hundred files.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* ⭐ Auto Feedback Popup */}
       <FeedbackPopup show={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
